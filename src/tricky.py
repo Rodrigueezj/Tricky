@@ -1,4 +1,5 @@
 import sys, pygame
+import numpy as np
 pygame.init()
 
 size = width, height = 900, 900
