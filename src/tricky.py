@@ -6,8 +6,8 @@ HEIGHT = 900
 
 ROWS = 3
 COLS = 3
-
 SQSIZE = WIDTH // COLS
+
 LINE_WIDTH = 15
 CIRC_WIDTH = 60
 CROSS_WIDTH = 15
@@ -18,12 +18,12 @@ WHITE = 255, 255, 255
 BLACK = 0,0,0
 
 pygame.init()
-
 surface = pygame.display.set_mode((WIDTH,HEIGHT))
 pygame.display.set_caption('Tricky')
 surface.fill(WHITE)
 
 class Board:
+
     def __init__(self):
         self.squares = np.zeros((ROWS,COLS))
         self.empty_squares = self.squares
@@ -202,7 +202,6 @@ def main():
             row, col = ai.eval(board)
             game.make_move(row, col)
             if game.isover(): game.running = False
-
 
         pygame.display.update()
 
