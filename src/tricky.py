@@ -1,4 +1,4 @@
-import sys, pygame
+import sys, pygame, copy
 import numpy as np
 
 WIDTH = 900
@@ -31,7 +31,7 @@ class Board:
         print(self.squares)
 
     def final_state(self):
-            
+        #return 0 if draw 
         #return 1 if 1st player wins
         #return 2 if 2nd player wins
 
@@ -67,7 +67,7 @@ class Board:
         empties = []
         for row in range(ROWS):
             for col in range(COLS):
-                if self.empty(row, col):
+                if self.empty_square(row, col):
                     empties.append((row, col))
         return empties
 
@@ -77,13 +77,68 @@ class Board:
     def isempty(self):
         return self.marked_squares == 0
 
+class AI:
+    
+    def __init__(self, player = 2):
+        self.player = player
+
+    def minimax(self, board, maximizing): #returns (evaluation, best move)
+        case = board.final_state()
+
+        #terminal cases
+
+        if case == 1: #if player 1 wins
+            return 1, None
+
+        elif case == 2: #if player 2 wins
+            return -1, None
+        
+        elif board.isfull(): #if draw
+            return 0, None
+
+        if maximizing:
+            max_eval = -10
+            best_move = None
+            empty_squares = board.get_empty_squares()
+
+            for (row, col) in empty_squares:
+                temp_board = copy.deepcopy(board)
+                temp_board.mark_square(row, col, 1)
+                eval = self.minimax(temp_board, False)[0]
+
+                if eval > max_eval:
+                    max_eval = eval
+                    best_move = (row, col)
+
+            return max_eval, best_move
+
+        elif not maximizing:
+            min_eval = 10
+            best_move = None
+            empty_squares = board.get_empty_squares()
+
+            for (row, col) in empty_squares:
+                temp_board = copy.deepcopy(board)
+                temp_board.mark_square(row, col, 2)
+                eval = self.minimax(temp_board, True)[0]
+
+                if eval < min_eval:
+                    min_eval = eval
+                    best_move = (row, col)
+
+            return min_eval, best_move
+
+    def eval(self, main_board):
+        eval, move = self.minimax(main_board, False)
+        print(f'AI has chosen to mark square in position {move}, with an evaluation of {eval}')
+        return move      
+
 class Game:
 
     def __init__(self):
         self.board = Board()
-        #self.ai = AI()
+        self.ai = AI()
         self.player = 1
-        self.gamemode = 'pvp'
         self.running = True
         self.lines()
 
@@ -116,12 +171,12 @@ class Game:
 def main():
     game = Game()
     board = game.board
+    ai = game.ai
     while True:                                         #   This is always the same on pygame
-        for event in pygame.event.get():                #  
+        for event in pygame.event.get():                  
             if event.type == pygame.QUIT:               #  checks if we have closed the program                                                 
-                pygame.quit()                           #
-                sys.exit()                              #
-                                                        
+                pygame.quit()                           
+                sys.exit()                                                                                
                                                         #casting positions into coordinatess
             if event.type == pygame.MOUSEBUTTONDOWN:
                 pos = event.pos                         #position of the click(built in pygame)
@@ -134,7 +189,13 @@ def main():
                     game.next_turn()
                     print(board.squares)
  
-        pygame.display.update() #update the display
+        if game.player == ai.player:
+            pygame.display.update()
+            row, col = ai.eval(board)
+            board.mark_square(row, col, game.player)
+            game.draw(row, col)
+            game.next_turn()
 
-if __name__ == '__main__':
-    main()
+        pygame.display.update()
+
+main()
