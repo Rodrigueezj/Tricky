@@ -149,6 +149,12 @@ class Game:
         pygame.draw.line(surface, BLACK, (SQSIZE, 0), (SQSIZE, HEIGHT), LINE_WIDTH)
         pygame.draw.line(surface, BLACK, (WIDTH - SQSIZE, 0), (WIDTH - SQSIZE, HEIGHT), LINE_WIDTH)
     
+    def make_move(self, row, col):
+        self.board.mark_square(row, col, self.player)
+        self.draw(row, col)
+        self.next_turn()
+        print(self.board.squares)
+
     def next_turn(self):
         self.player = (self.player % 2) + 1
 
@@ -168,6 +174,9 @@ class Game:
             pygame.draw.circle(surface, BLACK, center, CIRC_WIDTH)
             pygame.draw.circle(surface, WHITE, center, 50)
 
+    def isover(self):
+        return self.board.final_state() != 0 or self.board.isfull()
+
 def main():
     game = Game()
     board = game.board
@@ -183,18 +192,17 @@ def main():
                 col = pos[0] // SQSIZE                  #variable x
                 row = pos[1] // SQSIZE                  #variable y
 
-                if board.empty_square(row, col):
-                    board.mark_square(row, col, game.player)
-                    game.draw(row, col)
-                    game.next_turn()
-                    print(board.squares)
+                if board.empty_square(row, col) and game.running:
+                    game.make_move(row, col)
+                    if game.isover(): game.running = False
+                    
  
-        if game.player == ai.player:
+        if game.player == ai.player and game.running:
             pygame.display.update()
             row, col = ai.eval(board)
-            board.mark_square(row, col, game.player)
-            game.draw(row, col)
-            game.next_turn()
+            game.make_move(row, col)
+            if game.isover(): game.running = False
+
 
         pygame.display.update()
 
