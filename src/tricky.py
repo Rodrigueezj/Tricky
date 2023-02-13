@@ -18,7 +18,7 @@ WHITE = 255, 255, 255
 BLACK = 0,0,0
 
 pygame.init()
-surface = pygame.display.set_mode((WIDTH,HEIGHT))
+surface = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption('Tricky')
 surface.fill(WHITE)
 
@@ -79,10 +79,10 @@ class Board:
 
 class AI:
     
-    def __init__(self, player = 2):
+    def __init__(self, player=2):
         self.player = player
 
-    def minimax(self, board, maximizing): #returns (evaluation, best move)
+    def minimax(self, board): #returns (evaluation, best move)
         case = board.final_state()
 
         #terminal cases
@@ -96,15 +96,18 @@ class AI:
         elif board.isfull(): #if draw
             return 0, None
 
-        if maximizing:
+        best_move = None
+        empty_squares = board.get_empty_squares()
+
+
+        if len(empty_squares) % 2 == 1:
             max_eval = -10
-            best_move = None
-            empty_squares = board.get_empty_squares()
+
 
             for (row, col) in empty_squares:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_square(row, col, 1)
-                eval = self.minimax(temp_board, False)[0]
+                eval = self.minimax(temp_board)[0]
 
                 if eval > max_eval:
                     max_eval = eval
@@ -112,15 +115,14 @@ class AI:
 
             return max_eval, best_move
 
-        elif not maximizing:
+        elif len(empty_squares) % 2 == 0:
             min_eval = 10
-            best_move = None
-            empty_squares = board.get_empty_squares()
+            
 
             for (row, col) in empty_squares:
                 temp_board = copy.deepcopy(board)
                 temp_board.mark_square(row, col, 2)
-                eval = self.minimax(temp_board, True)[0]
+                eval = self.minimax(temp_board)[0]
 
                 if eval < min_eval:
                     min_eval = eval
@@ -128,10 +130,10 @@ class AI:
 
             return min_eval, best_move
 
-    def eval(self, main_board):
-        eval, move = self.minimax(main_board, False)
-        print(f'AI has chosen to mark square in position {move}, with an evaluation of {eval}')
-        return move      
+    # def eval(self, main_board):
+    #     eval, move = self.minimax(main_board, False)
+    #     print(f'AI has chosen to mark square in position {move}, with an evaluation of {eval}')
+    #     return move      
 
 class Game:
 
@@ -187,7 +189,7 @@ def main():
                 pygame.quit()                           
                 sys.exit()                                                                                
                                                         #casting positions into coordinatess
-            if event.type == pygame.MOUSEBUTTONDOWN:
+            if event.type == pygame.MOUSEBUTTONUP:
                 pos = event.pos                         #position of the click(built in pygame)
                 col = pos[0] // SQSIZE                  #variable x
                 row = pos[1] // SQSIZE                  #variable y
@@ -199,7 +201,7 @@ def main():
  
         if game.player == ai.player and game.running:
             pygame.display.update()
-            row, col = ai.eval(board)
+            row, col = ai.minimax(board)[1]
             game.make_move(row, col)
             if game.isover(): game.running = False
 
