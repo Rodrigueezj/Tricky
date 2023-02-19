@@ -78,9 +78,6 @@ class Board:
         return self.marked_squares == 0
 
 class AI:
-    
-    def __init__(self, player=2):
-        self.player = player
 
     def minimax(self, board): #returns (evaluation, best move)
         case = board.final_state()
@@ -130,17 +127,15 @@ class AI:
 
             return min_eval, best_move
 
-    # def eval(self, main_board):
-    #     eval, move = self.minimax(main_board, False)
-    #     print(f'AI has chosen to mark square in position {move}, with an evaluation of {eval}')
-    #     return move      
+    def agent(self, main_board):
+        move = self.minimax(main_board)[1]
+        return move      
 
 class Game:
 
     def __init__(self):
         self.board = Board()
         self.ai = AI()
-        self.player = 1
         self.running = True
         self.lines()
 
@@ -151,18 +146,18 @@ class Game:
         pygame.draw.line(surface, BLACK, (SQSIZE, 0), (SQSIZE, HEIGHT), LINE_WIDTH)
         pygame.draw.line(surface, BLACK, (WIDTH - SQSIZE, 0), (WIDTH - SQSIZE, HEIGHT), LINE_WIDTH)
     
-    def make_move(self, row, col):
-        self.board.mark_square(row, col, self.player)
-        self.draw(row, col)
-        self.next_turn()
+    def make_move(self, row, col, player):
+        self.board.mark_square(row, col, player)
+        self.draw(row, col, player)
+        self.next_turn(player)
         print(self.board.squares)
 
-    def next_turn(self):
-        self.player = (self.player % 2) + 1
+    def next_turn(self, player):
+        player = (player % 2) + 1
 
-    def draw(self, row, col):
+    def draw(self, row, col, player):
         
-        if self.player == 1:
+        if player == 1:
             start_desc = (col * SQSIZE + OFFSET, row * SQSIZE + OFFSET) 
             end_desc = (col * SQSIZE + SQSIZE - OFFSET, row * SQSIZE + SQSIZE - OFFSET)
             pygame.draw.line(surface, BLACK, start_desc, end_desc, LINE_WIDTH)
@@ -171,7 +166,7 @@ class Game:
             end_desc = (col * SQSIZE + OFFSET, row * SQSIZE + SQSIZE - OFFSET)
             pygame.draw.line(surface, BLACK, start_desc, end_desc, LINE_WIDTH)
             
-        elif self.player == 2:
+        elif player == 2:
             center  = (col * SQSIZE + SQSIZE // 2 , row * SQSIZE + SQSIZE // 2  )
             pygame.draw.circle(surface, BLACK, center, CIRC_WIDTH)
             pygame.draw.circle(surface, WHITE, center, 50)
@@ -188,22 +183,20 @@ def main():
             if event.type == pygame.QUIT:               #  checks if we have closed the program                                                 
                 pygame.quit()                           
                 sys.exit()                                                                                
-                                                        #casting positions into coordinatess
+                                                                    #casting positions into coordinatess
             if event.type == pygame.MOUSEBUTTONUP:
                 pos = event.pos                         #position of the click(built in pygame)
                 col = pos[0] // SQSIZE                  #variable x
                 row = pos[1] // SQSIZE                  #variable y
 
                 if board.empty_square(row, col) and game.running:
-                    game.make_move(row, col)
+                    game.make_move(row, col, 1)
+                    pygame.display.update()
                     if game.isover(): game.running = False
-                    
- 
-        if game.player == ai.player and game.running:
-            pygame.display.update()
-            row, col = ai.minimax(board)[1]
-            game.make_move(row, col)
-            if game.isover(): game.running = False
+                    if game.running:
+                        row, col = ai.agent(board)
+                        game.make_move(row, col, 2)
+                        if game.isover(): game.running = False
 
         pygame.display.update()
 
