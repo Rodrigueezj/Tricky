@@ -77,6 +77,7 @@ class Board:
     def isempty(self):
         return self.marked_squares == 0
 
+#
 class AI:
 
     def minimax(self, board): #returns (evaluation, best move)
